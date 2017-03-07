@@ -59,6 +59,8 @@ android {
     buildToolsVersion "25.0.1"
 
 
+    flavorDimensions "region", "api"
+
     signingConfigs {
         release {
             try {
@@ -78,16 +80,20 @@ android {
 
     productFlavors {
         flavor2 {
+            dimension "region"
+
             println("@@@THIS IS FLAVOR2@@@")
             applicationId 'andresguard.tencent.com.andresguard_example.flavor2'
         }
 
         flavor1 {
+            dimension "region"
             println("@@@THIS IS FLAVOR1@@@")
             applicationId 'andresguard.tencent.com.andresguard_example.flavor1'
         }
 
         aaa {
+            dimension "api"
             println("@@@THIS IS aaa@@@")
             applicationId 'andresguard.tencent.com.andresguard_example.aaa'
         }

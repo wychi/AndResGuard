@@ -23,19 +23,16 @@ class AndResGuardTask extends DefaultTask {
         outputs.upToDateWhen { false }
         android = project.extensions.android
         configuration = project.andResGuard
+        String variantName = this.name["resguard".length()..-1]
         android.applicationVariants.all { variant ->
-            variant.outputs.each { output ->
-                // remove "resguard"
-                String variantName = this.name["resguard".length()..-1]
-                if (variantName.equalsIgnoreCase(variant.buildType.name as String)
-                    || isTargetFlavor(variantName, variant.productFlavors, variant.buildType.name)
-                ) {
-                    buildConfigs << new BuildInfo(
-                            output.outputFile,
-                            variant.apkVariantData.variantConfiguration.signingConfig,
-                            variant.apkVariantData.variantConfiguration.applicationId
-                    )
-                }
+            if(variantName.equalsIgnoreCase(variant.name)) {
+                def output = variant.outputs[0]
+                project.logger.info("[AndResGuard] target apk: $variant.name " + output.outputFile )
+                buildConfigs << new BuildInfo(
+                        output.outputFile,
+                        variant.apkVariantData.variantConfiguration.signingConfig,
+                        variant.apkVariantData.variantConfiguration.applicationId
+                )
             }
         }
         if (!project.plugins.hasPlugin('com.android.application')) {
