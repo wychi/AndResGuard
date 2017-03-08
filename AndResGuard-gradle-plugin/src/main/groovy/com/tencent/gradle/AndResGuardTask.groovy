@@ -17,6 +17,8 @@ class AndResGuardTask extends DefaultTask {
     def android
     def buildConfigs = []
 
+    def signingConfig = null;
+    def applicationId = null;
     AndResGuardTask() {
         description = 'Assemble Resource Proguard APK'
         group = 'andresguard'
@@ -26,13 +28,13 @@ class AndResGuardTask extends DefaultTask {
         String variantName = this.name["resguard".length()..-1]
         android.applicationVariants.all { variant ->
             if(variantName.equalsIgnoreCase(variant.name)) {
-                def output = variant.outputs[0]
-                project.logger.info("[AndResGuard] target apk: $variant.name " + output.outputFile )
-                buildConfigs << new BuildInfo(
-                        output.outputFile,
-                        variant.apkVariantData.variantConfiguration.signingConfig,
-                        variant.apkVariantData.variantConfiguration.applicationId
-                )
+                this.signingConfig = variant.apkVariantData.variantConfiguration.signingConfig
+                this.applicationId = variant.apkVariantData.variantConfiguration.applicationId
+//                buildConfigs << new BuildInfo(
+//                        output.outputFile,
+//                        variant.apkVariantData.variantConfiguration.signingConfig,
+//                        variant.apkVariantData.variantConfiguration.applicationId
+//                )
             }
         }
         if (!project.plugins.hasPlugin('com.android.application')) {
@@ -58,8 +60,28 @@ class AndResGuardTask extends DefaultTask {
         return "${android.getSdkDirectory().getAbsolutePath()}/build-tools/${android.buildToolsVersion}/zipalign"
     }
 
+    @Override
+    void setEnabled(boolean enabled) {
+        super.setEnabled(enabled)
+
+        if(enabled) {
+            File sourceApk = inputs.files.singleFile;
+            String apkBasename = sourceApk.getName();
+            apkBasename = apkBasename.substring(0, apkBasename.indexOf(".apk"));
+            outputs.files new File(useFolder(sourceApk), apkBasename + "_signed_7zip_aligned.apk");
+            project.logger.info("[AndResGuard] output file:" + new File(useFolder(sourceApk), apkBasename + "_signed_7zip_aligned.apk").toString())
+        }
+    }
+
     @TaskAction
     run() {
+        File sourceApk = inputs.files.singleFile;
+        buildConfigs << new BuildInfo(
+                sourceApk,
+                this.signingConfig,
+                this.applicationId)
+
+
         project.logger.info("[AndResGuard] configuartion:$configuration")
         project.logger.info("[AndResGuard] BuildConfigs:$buildConfigs")
 
